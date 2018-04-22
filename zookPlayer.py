@@ -1,31 +1,58 @@
 import sys
 import copy
+
 # print to stderr for debugging purposes
 # remove all debugging statements before submitting your code
-#msg = "Given board " + sys.argv[1] + "\n";
-msg = "[13][302][1003][31002][100003][3000002][121212]LastPlay:(1,3,1,3)"
+msg = "Given board " + sys.argv[1] + "\n";
+#msg = '[13][302][1003][31002][100003][3000002][121212]LastPlay:null'
 
-#sys.stderr.write(msg);
+sys.stderr.write(msg);
 
 
 #parse the input string, i.e., argv[1]
-
  
 #perform intelligent search to determine the next move
 
 #print to stdout for AtroposGame
-#sys.stdout.write("(3,2,2,2)");
 # As you can see Zook's algorithm is not very intelligent. He 
 # will be disqualified.
 
-def get_successors(board, prev_move):
-    neighbors = get_neighbors(board, prev_move)
-    
-    open_pos = []
-    for neighbor in neighbors:
-        if neighbor[0] == '0':
-            open_pos.append(neighbor)
+def all_open_pos(board):
 
+    open_pos = []
+    for i in range(len(board)):
+        curr = len(board) - 1 - i
+        contents = board[curr][0]
+
+        left_d = 0
+        right_d = len(contents) - 1
+
+        for position in contents:
+            if position == '0':
+                to_add = ('0', i, left_d, right_d)
+                open_pos.append(to_add)
+
+            left_d += 1
+            right_d -= 1
+
+    return open_pos
+
+
+def get_successors(board, prev_move):
+
+    open_pos = []
+    if prev_move == 'null':
+        open_pos = all_open_pos(board)
+    else:
+        neighbors = get_neighbors(board, prev_move)
+    
+        for neighbor in neighbors:
+            if neighbor[0] == '0':
+                open_pos.append(neighbor)
+
+        if len(open_pos) == 0:
+            open_pos = all_open_pos(board)
+    
     succ = []
     for position in open_pos:
         for color in ['1', '2', '3']:
@@ -46,10 +73,33 @@ def apply_move(board, move):
     return new_board
 
 
+def is_loss(neighbors, color):
+    other_colors = ""
+    if color == "1":
+        other_colors = "23"
+    elif color == "2":
+        other_colors = "13"
+    else:
+        other_colors = "12"
+    
+    for i in range(len(neighbors) - 1):
+        if (neighbors[i][0] in other_colors and neighbors[i+1][0] in \
+        other_colors) and neighbors[i][0] != neighbors[i+1][0]:
+            return True
 
 
-def evaluate(board, prev_move):
+    return False
+
+
+
+def evaluate(board, prev_move, turn):
     neighbors = get_neighbors(board, prev_move)
+
+    if is_loss(neighbors, prev_move[0]):
+        if not turn:
+            return float("inf")
+        else:
+            return float("-inf")
 
     # Get count of open neighbors
     count = 0
@@ -57,29 +107,35 @@ def evaluate(board, prev_move):
         if neighbor[0] == '0':
             count += 1
     
-    return count
+    return -count
 
 
 def get_neighbors(board, position):
     
     neighbors = []
+
+    neighbors.append(get_checker(board, position[1], position[2] - 1, \
+                                 position[3] + 1))
+
     neighbors.append(get_checker(board, position[1] + 1, position[2] - 1, \
                                  position[3]))
 
     neighbors.append(get_checker(board, position[1] + 1, position[2], \
                                  position[3] - 1))
 
-    neighbors.append(get_checker(board, position[1], position[2] - 1, \
-                                 position[3] + 1))
-
     neighbors.append(get_checker(board, position[1], position[2] + 1, \
                                  position[3] - 1))
+
+    try:
+        neighbors.append(get_checker(board, position[1] - 1, position[2] + 1, \
+                                 position[3]))
+    except:
+        print(board, position)
+        askdh
 
     neighbors.append(get_checker(board, position[1] - 1, position[2], \
                                  position[3] + 1))
 
-    neighbors.append(get_checker(board, position[1] - 1, position[2] +1, \
-                                 position[3]))
 
     return neighbors
     
@@ -87,12 +143,19 @@ def get_neighbors(board, position):
 
 def get_checker(board, height, left_dist, right_dist):
     row = board[-1 - height]
-    return (row[0][left_dist], height, left_dist, right_dist)
+    if height == 0:
+        return (row[0][left_dist - 1], height, left_dist, right_dist)
+    else: 
+        return (row[0][left_dist], height, left_dist, right_dist)
 
 
 def process_board(board):
     ind = board.index('L')
-    prev_move = eval(board[ind + 9:])
+    if board[ind + 9:] == 'null':
+        prev_move = 'null'
+    else:
+        prev_move = eval(board[ind + 9:])
+
     
     board = eval(('[' + board[:ind] + ']').replace('][', '],['))
 
@@ -106,19 +169,32 @@ def process_board(board):
 
 def next_move(board, depth, prev_move, turn):
     if depth == 0:
-        return evaluate(board, prev_move), prev_move
+        return evaluate(board, prev_move, turn), prev_move
 
     successors = get_successors(board, prev_move)
 
     scores = []
     for succ_board, move in successors:
-        score, potential_move = next_move(succ_board, depth -1, move, not turn)
-        scores.append([score, potential_move])
+        # We don't want to check the next move of a board that's already lost
+        if is_loss(get_neighbors(succ_board, move), move[0]):
+            if not turn:
+                score = float("inf")
+            if turn:
+                score = float("-inf")
+        else:
+            score, _ = next_move(succ_board, depth -1, move, not turn)
+
+        scores.append([score, move])
+
 
     if turn:
         return max(scores)
     else:
         return min(scores)
 
+
+
 board, prev_move = process_board(msg)
-print(get_successors(board, prev_move))
+_, move = next_move(board, 6, prev_move, True)
+
+sys.stdout.write(str(move));
