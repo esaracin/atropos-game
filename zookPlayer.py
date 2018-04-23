@@ -241,12 +241,15 @@ def next_move(board, depth, prev_move, turn):
         return min(scores)
 
 
+def main():
+    board, prev_move = process_board(sys.argv[1])
+    # board, prev_move = process_board(msg)
+    _, move = next_move(board, 3, prev_move, True)
 
-board, prev_move = process_board(sys.argv[1])
-# board, prev_move = process_board(msg)
-_, move = next_move(board, 3, prev_move, True)
+    color = int(move[0])
+    move = (color, move[1], move[2], move[3])
 
-color = int(move[0])
-move = (color, move[1], move[2], move[3])
+    sys.stdout.write(str(move));
+    
 
-sys.stdout.write(str(move));
+if __name__ == "__main__":main() ## with if
