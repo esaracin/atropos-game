@@ -1,3 +1,14 @@
+#
+# zookPlayer.py
+#
+# CS 440 PA 3
+# Kylie Moses and Eli Saracino
+#
+# Intelligent player script for AtroposGame.
+# Reads in board and last move string and determines and writes out next move string.
+#
+
+
 import sys
 import copy
 
@@ -7,17 +18,10 @@ msg = "Given board " + sys.argv[1] + "\n"
 # msg = "[32][133][3332][13233][313332][1130223][30112222][1212121]LastPlay:(1,1,2,5)"
 sys.stderr.write(msg)
 
-
-
-#parse the input string, i.e., argv[1]
- 
-#perform intelligent search to determine the next move
-
-#print to stdout for AtroposGame
-# As you can see Zook's algorithm is not very intelligent. He 
-# will be disqualified.
-
 def all_open_pos(board):
+    """
+        Takes in a board and returns a list of all open positions on that board.
+    """
 
     open_pos = []
     for i in range(len(board)):
@@ -39,6 +43,9 @@ def all_open_pos(board):
 
 
 def get_successors(board, prev_move):
+    """
+        Takes in a board and prev_move and returns a list of all possible successor boards.
+    """
 
     open_pos = []
     if prev_move == 'null':
@@ -66,6 +73,11 @@ def get_successors(board, prev_move):
 
 
 def apply_move(board, move):
+    """
+        Takes in a board and move and returns a new deep copy of the passed in board
+        with the move applied to it.
+    """
+
     new_board = copy.deepcopy(board)
     row = new_board[-1 - move[1]]
     new_row = row[0][:move[2]] + move[0] + row[0][move[2] + 1:] 
@@ -76,6 +88,11 @@ def apply_move(board, move):
 
 
 def is_loss(neighbors, color):
+    """
+        Takes in a list of tuples (neighbors) and the color of the marker who has those neighbors, 
+        and determines if the player who placed the marker with the passed in color has lost.
+    """
+
     other_colors = ""
     if color == "1":
         other_colors = "23"
@@ -95,6 +112,12 @@ def is_loss(neighbors, color):
 
 
 def evaluate(board, prev_move, turn):
+    """
+        Our static evaluator.
+        Takes in a board, prev_move, and turn and determines the score of situation based
+        on the prev_move on that board and whose turn it is. 
+        Score is higher the fewer open positions there are left.
+    """
     neighbors = get_neighbors(board, prev_move)
 
     if is_loss(neighbors, prev_move[0]):
@@ -113,6 +136,10 @@ def evaluate(board, prev_move, turn):
 
 
 def get_neighbors(board, position):
+    """
+        Takes in a board and a position tuple of a marker and 
+        returns a list of tuples representing that marker's neighbors.
+    """
     
     neighbors = []
 
@@ -140,6 +167,11 @@ def get_neighbors(board, position):
 
 
 def get_checker(board, height, left_dist, right_dist):
+    """
+        Takes in a board, height, left distance, and right distance
+        of a marker on the board and returns the tuple representing that marker
+        along with its color.
+    """
     row = board[-1 - height]
     if height == 0:
         return (row[0][left_dist - 1], height, left_dist, right_dist)
@@ -148,6 +180,10 @@ def get_checker(board, height, left_dist, right_dist):
 
 
 def process_board(board):
+    """
+        Takes in the passed in board string and returns a 2D list of strings representing
+        the board and a tuple representing the color and coordinates of the previous move on the board.
+    """
     ind = board.index('L')
 
     if 'null' in board[ind + 9:]:
@@ -167,6 +203,13 @@ def process_board(board):
 
 
 def next_move(board, depth, prev_move, turn):
+    """
+        Main player method that uses the minimax algorithm to determines the "best" next move of the player
+        based on the passed in board and prev_move, with a given lookahead of depth.
+        The turn parameter is used to determine whose "turn" it is during the recursive
+        minimax algorithm.
+    """
+
     if depth == 0:
         return evaluate(board, prev_move, turn), prev_move
 
