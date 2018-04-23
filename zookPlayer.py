@@ -4,6 +4,7 @@ import copy
 # print to stderr for debugging purposes
 # remove all debugging statements before submitting your code
 msg = "Given board " + sys.argv[1] + "\n"
+# msg = "[32][133][3332][13233][313332][1130223][30112222][1212121]LastPlay:(1,1,2,5)"
 sys.stderr.write(msg)
 
 
@@ -44,6 +45,7 @@ def get_successors(board, prev_move):
         open_pos = all_open_pos(board)
     else:
         neighbors = get_neighbors(board, prev_move)
+        # print("neighbors:", neighbors)
     
         for neighbor in neighbors:
             if neighbor[0] == '0':
@@ -51,6 +53,7 @@ def get_successors(board, prev_move):
 
         if len(open_pos) == 0:
             open_pos = all_open_pos(board)
+            # print("open positions:", open_pos)
     
     succ = []
     for position in open_pos:
@@ -168,6 +171,9 @@ def next_move(board, depth, prev_move, turn):
         return evaluate(board, prev_move, turn), prev_move
 
     successors = get_successors(board, prev_move)
+    # print("successors:", successors)
+    # print("board:", board)
+
 
     scores = []
     for succ_board, move in successors:
@@ -175,13 +181,16 @@ def next_move(board, depth, prev_move, turn):
         if is_loss(get_neighbors(succ_board, move), move[0]):
             if not turn:
                 score = float("inf")
-            if turn:
+            else:
                 score = float("-inf")
         else:
             score, _ = next_move(succ_board, depth -1, move, not turn)
 
         scores.append([score, move])
 
+
+    if len(scores) == 0:
+        return evaluate(board, prev_move, turn), prev_move
 
     if turn:
         return max(scores)
@@ -191,6 +200,7 @@ def next_move(board, depth, prev_move, turn):
 
 
 board, prev_move = process_board(sys.argv[1])
+# board, prev_move = process_board(msg)
 _, move = next_move(board, 3, prev_move, True)
 
 color = int(move[0])
