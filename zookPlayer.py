@@ -3,10 +3,9 @@ import copy
 
 # print to stderr for debugging purposes
 # remove all debugging statements before submitting your code
-msg = "Given board " + sys.argv[1] + "\n";
-#msg = '[13][302][1003][31002][100003][3000002][121212]LastPlay:null'
+msg = "Given board " + sys.argv[1] + "\n"
+sys.stderr.write(msg)
 
-sys.stderr.write(msg);
 
 
 #parse the input string, i.e., argv[1]
@@ -126,12 +125,8 @@ def get_neighbors(board, position):
     neighbors.append(get_checker(board, position[1], position[2] + 1, \
                                  position[3] - 1))
 
-    try:
-        neighbors.append(get_checker(board, position[1] - 1, position[2] + 1, \
+    neighbors.append(get_checker(board, position[1] - 1, position[2] + 1, \
                                  position[3]))
-    except:
-        print(board, position)
-        askdh
 
     neighbors.append(get_checker(board, position[1] - 1, position[2], \
                                  position[3] + 1))
@@ -151,7 +146,8 @@ def get_checker(board, height, left_dist, right_dist):
 
 def process_board(board):
     ind = board.index('L')
-    if board[ind + 9:] == 'null':
+
+    if 'null' in board[ind + 9:]:
         prev_move = 'null'
     else:
         prev_move = eval(board[ind + 9:])
@@ -194,7 +190,10 @@ def next_move(board, depth, prev_move, turn):
 
 
 
-board, prev_move = process_board(msg)
-_, move = next_move(board, 6, prev_move, True)
+board, prev_move = process_board(sys.argv[1])
+_, move = next_move(board, 3, prev_move, True)
+
+color = int(move[0])
+move = (color, move[1], move[2], move[3])
 
 sys.stdout.write(str(move));
