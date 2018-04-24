@@ -80,6 +80,8 @@ def apply_move(board, move):
 
     new_board = copy.deepcopy(board)
     row = new_board[-1 - move[1]]
+
+    # Create new row string using passed move
     new_row = row[0][:move[2]] + move[0] + row[0][move[2] + 1:] 
     row[0] = new_row
 
@@ -100,7 +102,9 @@ def is_loss(neighbors, color):
         other_colors = "13"
     else:
         other_colors = "12"
-    
+   
+    # Given the neighbors, we can walk through them in order, checking for
+    # Triangles. If any exist, we have a loss.
     for i in range(len(neighbors) - 1):
         if (neighbors[i][0] in other_colors and neighbors[i+1][0] in \
         other_colors) and neighbors[i][0] != neighbors[i+1][0]:
@@ -119,7 +123,9 @@ def evaluate(board, prev_move, turn):
         Score is higher the fewer open positions there are left.
     """
     neighbors = get_neighbors(board, prev_move)
-
+    
+    # Give a score of infinity to a losing board state (using the turn variable
+    # so this board will never be selected by our Minimax algorithm
     if is_loss(neighbors, prev_move[0]):
         if not turn:
             return float("inf")
@@ -191,9 +197,10 @@ def process_board(board):
     else:
         prev_move = eval(board[ind + 9:])
 
-    
+    # Evaluate the board string as a 2D-list 
     board = eval(('[' + board[:ind] + ']').replace('][', '],['))
 
+    # Evaluate each row as a String, so it can be indexed later
     for row in range(len(board)):
         board[row][0] = str(board[row][0])
 
